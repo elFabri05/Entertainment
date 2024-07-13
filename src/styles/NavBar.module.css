@@ -1,0 +1,52 @@
+.navBar{
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    background-color: #161D2F;
+    padding: 1rem;
+}
+
+.navBarItems{
+    display: flex;
+    justify-content: space-between;
+    width: 134px;
+    align-items: center;
+}
+
+@media (min-width:375px){
+    .navBar{
+        margin: 1rem;
+        border-radius: 6px;
+    }
+
+    .navBarItems{
+        width: 173px;
+    }
+
+    .logo{
+        width: 32px;
+        height: 25.6px;
+    }
+
+    .navIcon{
+        width: 20px;
+        height: 20px;
+    }
+}
+
+@media (min-width:752px){
+    .navBar{
+        display: flex;
+        flex-direction: column;
+        width: 96px;
+        height: calc(100vh - 2rem);
+        align-items: center;
+        gap:76px;
+    }
+
+    .navBarItems{
+        flex-direction: column;
+        justify-content: space-between;
+        height: 200px;
+    }
+    
+}
