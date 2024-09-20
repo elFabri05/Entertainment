@@ -5,7 +5,6 @@ import { TextField, InputAdornment, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { styled } from '@mui/system';
 import styles from '@/styles/Dashboard.module.css';
-import MovieList from '@/components/movieList';
 
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
@@ -23,7 +22,7 @@ const StyledTextField = styled(TextField)({
   },
 });
 
-const Dashboard: React.FC = () => {
+const BookedMarked: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,8 +38,8 @@ const Dashboard: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Dashboard</title>
-        <meta name="description" content="Dashboard" />
+        <title>BookedMarked</title>
+        <meta name="description" content="BookedMarked" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -52,7 +51,7 @@ const Dashboard: React.FC = () => {
               <StyledTextField
                 variant="outlined"
                 fullWidth
-                placeholder="Search for movies or TV series"
+                placeholder="Search for bookedmarked shows"
                 value={searchQuery}
                 onChange={handleSearchChange}
                 InputProps={{
@@ -65,11 +64,10 @@ const Dashboard: React.FC = () => {
               />
             </form>
           </div>
-        <MovieList/>
         </main>
       </div>
     </>
   );
 };
 
-export default Dashboard;
+export default BookedMarked;

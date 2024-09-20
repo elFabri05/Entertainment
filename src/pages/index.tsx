@@ -5,10 +5,17 @@ import Link from 'next/link'
 import { useRouter } from 'next/router';
 import { signIn } from 'next-auth/react';
 import TextField from '@mui/material/TextField';
-import { Container, Box, Typography, Button } from '@mui/material';
+import { Container, Box, Typography, Button, Alert } from '@mui/material';
 import styles from '@/styles/Home.module.css'
 import theme from '../theme/textFieldTheme';
 import { ThemeProvider } from '@mui/material/styles';
+import useSWR from 'swr';
+
+const fetcher = (url: string, data: object) => 
+  signIn('credentials', {
+    redirect: false,
+    ...data,
+  });
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -16,16 +23,17 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const router = useRouter();
 
+  const { data, error: swrError, mutate } = useSWR('/api/auth/signin', null, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email,
-        password,
-      });
+      const result = await mutate(() => fetcher('/api/auth/signin', { email, password }));
 
       if (result?.error) {
         setError('Invalid credentials. Please try again.');
@@ -41,7 +49,7 @@ const Login: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Login - Next.js App</title>
+        <title>Login - Entertainment App</title>
         <meta name="description" content="Login page for Next.js app" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -89,11 +97,21 @@ const Login: React.FC = () => {
                       onChange={(e) => setPassword(e.target.value)}
                     />
                   </ThemeProvider>
-                  <Button type="submit" variant="contained" color="primary" fullWidth style={{ marginTop: '16px', backgroundColor: '#FC4747' }}>
-                    Login to your account
+                  <Button 
+                    type="submit" 
+                    variant="contained" 
+                    color="primary" 
+                    fullWidth 
+                    style={{ marginTop: '16px', backgroundColor: '#FC4747' }}
+                  >
+                    Login
                   </Button>
+                  {(error || swrError) && (
+                    <Alert severity="error" style={{ marginTop: '16px' }}>
+                      {error || swrError.message}
+                    </Alert>
+                  )}
                 </Box>
-                {error && <Typography color="error" style={{ marginTop: '16px'}}>{error}</Typography>}
                 <Typography style={{ marginTop: '16px' }}>
                   Don&#39;t have an account? <Link href="/signup" style={{ color: '#FC4747', textDecoration: 'none' }}>Sign Up</Link>
                 </Typography>
