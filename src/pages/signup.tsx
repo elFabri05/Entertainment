@@ -144,7 +144,7 @@ const SignUp: React.FC = () => {
                 </Box>
                 <Typography style={{ marginTop: '16px' }}>
                   Already have an account?{' '}
-                  <Link href="/auth/signin" style={{ color: '#FC4747', textDecoration: 'none' }}>
+                  <Link href="/" style={{ color: '#FC4747', textDecoration: 'none' }}>
                     Login
                   </Link>
                 </Typography>
