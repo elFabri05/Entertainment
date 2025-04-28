@@ -6,7 +6,6 @@ const NavBar: React.FC = () => {
     return(
         <>
             <div className={styles.navBar}>
-                <Link href="/">
                     <Image
                         src="/assets/logo.svg"
                         alt="Logo"
@@ -14,9 +13,8 @@ const NavBar: React.FC = () => {
                         height={20}
                         className={styles.logo}
                     />
-                </Link>
                 <div className={styles.navBarItems}>
-                    <Link href="/">
+                    <Link href="/dashboard">
                         <Image
                             src="/assets/icon-nav-home.svg"
                             alt="Home nav icon"
@@ -34,7 +32,7 @@ const NavBar: React.FC = () => {
                             className={styles.navIcon}
                         />
                     </Link>
-                    <Link href="/tv-series">
+                    <Link href="/tvseries">
                         <Image
                             src="/assets/icon-nav-tv-series.svg"
                             alt="Series nav icon"

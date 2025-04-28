@@ -15,35 +15,65 @@ const SignUp: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const router = useRouter();
+  const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+
+  // Email format validation
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Password length validation
+  const isValidPassword = (password: string) => {
+    return password.length >= 6;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setIsSubmitting(true);
 
+    // Frontend validations
     if (password !== confirmPassword) {
       setError("Passwords don't match");
       setIsSubmitting(false);
       return;
     }
+    if (!isValidEmail(email)) {
+      setError("Invalid email format");
+      setIsSubmitting(false);
+      return;
+    }
+    if (!isValidPassword(password)) {
+      setError("Password must be at least 6 characters");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      // Send signup request directly
+      // Send signup request
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
-      const result = await response.json();
+      // Check if the response is JSON before parsing
+      const contentType = response.headers.get("content-type");
+      const result = contentType && contentType.includes("application/json")
+        ? await response.json()
+        : { message: 'Unknown error occurred' };
 
       if (!response.ok) {
-        // Handle HTTP errors
+        // Display backend error message if available
         setError(result.message || 'Failed to create account');
         setIsSubmitting(false);
       } else {
+        setSuccess('Account created successfully! Redirecting...');
+        
         // If user creation was successful, attempt to sign in
         const signInResult = await signIn('credentials', {
           redirect: false,
@@ -139,6 +169,11 @@ const SignUp: React.FC = () => {
                   {error && (
                     <Alert severity="error" style={{ marginTop: '16px' }}>
                       {error}
+                    </Alert>
+                  )}
+                  {success && (
+                    <Alert severity="success" style={{ marginTop: '16px' }}>
+                      {success}
                     </Alert>
                   )}
                 </Box>

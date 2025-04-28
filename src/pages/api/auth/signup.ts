@@ -16,8 +16,19 @@ export default async function handler(
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  await dbConnect();
-  
+  // Ensure Content-Type is JSON
+  if (req.headers['content-type'] !== 'application/json') {
+    return res.status(400).json({ message: 'Content-Type must be application/json' });
+  }
+
+  // Connect to the database with error handling
+  try {
+    await dbConnect();
+  } catch (error) {
+    console.error('Database connection error:', error);
+    return res.status(500).json({ message: 'Database connection error' });
+  }
+
   try {
     const { email, password }: { email: string; password: string } = req.body;
 
@@ -26,14 +37,24 @@ export default async function handler(
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
+    // Validate email format and password length
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(422).json({ message: 'User already exists' });
     }
 
-    // Hash password
-    const salt: string = await bcrypt.genSalt(10);
+    // Hash password using environment variable for salt rounds
+    const saltRounds = parseInt(process.env.SALT_ROUNDS || '10', 10);
+    const salt: string = await bcrypt.genSalt(saltRounds);
     const hashedPassword: string = await bcrypt.hash(password, salt);
 
     // Create new user with username set to email
@@ -50,8 +71,12 @@ export default async function handler(
       message: 'User created', 
       userId: userId
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating user:', error);
-    res.status(500).json({ message: 'Error creating user' });
+    res.status(500).json({ 
+      message: process.env.NODE_ENV === 'development' 
+        ? `Error creating user: ${error.message}` 
+        : 'Internal server error'
+    });
   }
 }

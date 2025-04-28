@@ -2,8 +2,7 @@ import NextAuth, { NextAuthOptions, DefaultSession } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcrypt'
 import dbConnect from '@/lib/mongodb'
-import User, { IUser } from '@/models/User'
-import { Document, Types } from 'mongoose'
+import User from '@/models/User'
 
 declare module "next-auth" {
   interface Session {
