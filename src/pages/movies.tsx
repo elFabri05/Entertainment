@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Head from "next/head";
 import NavBar from '@/components/NavBar';
-import { TextField, InputAdornment, IconButton } from '@mui/material';
+import { TextField, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { styled } from '@mui/system';
 import styles from '@/styles/Dashboard.module.css';

@@ -62,6 +62,7 @@ export default async function handler(
       email,
       password: hashedPassword,
       username: email, // Set username to email
+      bookmarks: [], // Initialize empty bookmarks array
     });
 
     // Access _id as a string directly
