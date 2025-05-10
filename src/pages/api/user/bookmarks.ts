@@ -1,6 +1,7 @@
 // src/pages/api/user/bookmarks.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from 'next-auth/react';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
 import dbConnect from '@/lib/mongodb';
 import mongoose from 'mongoose';
 
@@ -15,10 +16,14 @@ export default async function handler(
   res: NextApiResponse<BookmarkResponse>
 ) {
   try {
-    // Get the user session
-    const session = await getSession({ req });
+    // Get the user session using getServerSession (no longer unstable)
+    const session = await getServerSession(req, res, authOptions);
+    
+    console.log("API Route - Session check:", session);
+    console.log("API Route - Request headers:", req.headers);
     
     if (!session) {
+      console.log("API Route - No session found");
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
     
@@ -31,6 +36,8 @@ export default async function handler(
     if (!userEmail) {
       return res.status(400).json({ success: false, message: 'User email not found in session' });
     }
+
+    console.log("API Route - User email:", userEmail);
 
     // Access MongoDB directly
     const db = mongoose.connection.db;

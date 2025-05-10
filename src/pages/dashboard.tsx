@@ -63,33 +63,63 @@ const Dashboard: React.FC<DashboardProps> = ({ mediaItems, initialBookmarks = []
   // Separate trending items for the carousel (but all items will show in Recommended)
   const trendingItems = filteredItems.filter(item => item.isTrending);
 
+  // Debug authentication state on mount and changes
+  useEffect(() => {
+    console.log("=== AUTHENTICATION DEBUG ===");
+    console.log("Session status:", status);
+    console.log("Session data:", session);
+    console.log("Is authenticated?", status === 'authenticated');
+    console.log("User email:", session?.user?.email);
+    console.log("Initial bookmarks:", initialBookmarks);
+    console.log("Current bookmarked IDs:", bookmarkedIds);
+    console.log("===========================");
+  }, [session, status, initialBookmarks, bookmarkedIds]);
+
   // Fetch bookmarks when user is authenticated
   useEffect(() => {
     const fetchBookmarks = async () => {
+      console.log("=== FETCHING BOOKMARKS ===");
+      console.log("Session status:", status);
+      console.log("Session:", session);
+      
       if (status === 'authenticated' && session?.user?.email) {
         try {
+          console.log("Making request to /api/user/bookmarks...");
           const response = await fetch('/api/user/bookmarks');
+          console.log("Response status:", response.status);
+          
           if (response.ok) {
             const data = await response.json();
+            console.log("Bookmarks data received:", data);
+            
             if (data.success && data.bookmarks) {
               const ids = data.bookmarks.map((bookmark: any) => {
                 return typeof bookmark.mediaId === 'object' 
                   ? bookmark.mediaId.toString() 
                   : bookmark.mediaId;
               });
+              console.log("Extracted bookmark IDs:", ids);
               setBookmarkedIds(ids);
             }
+          } else {
+            console.error("Failed to fetch bookmarks, status:", response.status);
+            const errorText = await response.text();
+            console.error("Error response:", errorText);
           }
         } catch (error) {
           console.error('Error fetching bookmarks:', error);
         }
+      } else {
+        console.log("Not fetching bookmarks - not authenticated");
+        console.log("Status:", status);
+        console.log("Session:", session);
       }
+      console.log("=========================");
     };
 
     fetchBookmarks();
   }, [session, status]);
 
-  
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const query = event.target.value;
     setSearchQuery(query);
@@ -112,32 +142,55 @@ const Dashboard: React.FC<DashboardProps> = ({ mediaItems, initialBookmarks = []
 
   // Handle bookmark toggle with database persistence
   const toggleBookmark = async (mediaId: string) => {
+    console.log("=== BOOKMARK TOGGLE DEBUG ===");
+    console.log("Media ID:", mediaId);
+    console.log("Current session status:", status);
+    console.log("Current session data:", session);
+    console.log("Is authenticated?", status === 'authenticated');
+    console.log("User email:", session?.user?.email);
+    
     // Check if user is authenticated
     if (status !== 'authenticated') {
+      console.log("❌ NOT AUTHENTICATED");
+      console.log("Status:", status);
+      console.log("Session exists?", !!session);
       alert('Please log in to bookmark items');
       return;
     }
 
+    console.log("✅ AUTHENTICATED - proceeding with bookmark");
+
     const isCurrentlyBookmarked = bookmarkedIds.includes(mediaId);
+    console.log("Is currently bookmarked?", isCurrentlyBookmarked);
     
     try {
       // Optimistically update UI for better UX
       if (isCurrentlyBookmarked) {
         setBookmarkedIds(prev => prev.filter(id => id !== mediaId));
+        console.log("Optimistically removing bookmark");
       } else {
         setBookmarkedIds(prev => [...prev, mediaId]);
+        console.log("Optimistically adding bookmark");
       }
 
       // Make API call to persist bookmark
+      const method = isCurrentlyBookmarked ? 'DELETE' : 'POST';
+      console.log("Making API request:", method);
+      
       const response = await fetch('/api/user/bookmarks', {
-        method: isCurrentlyBookmarked ? 'DELETE' : 'POST',
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ mediaId }),
       });
 
+      console.log("API response status:", response.status);
+      const data = await response.json();
+      console.log("API response data:", data);
+
       if (!response.ok) {
+        console.error("❌ API call failed");
         // Revert UI change if database update failed
         if (isCurrentlyBookmarked) {
           setBookmarkedIds(prev => [...prev, mediaId]);
@@ -145,9 +198,10 @@ const Dashboard: React.FC<DashboardProps> = ({ mediaItems, initialBookmarks = []
           setBookmarkedIds(prev => prev.filter(id => id !== mediaId));
         }
         
-        const data = await response.json();
         console.error('Bookmark operation failed:', data.message);
         alert('Failed to update bookmark. Please try again.');
+      } else {
+        console.log("✅ Bookmark operation successful");
       }
     } catch (error) {
       console.error('Error toggling bookmark:', error);
@@ -160,6 +214,7 @@ const Dashboard: React.FC<DashboardProps> = ({ mediaItems, initialBookmarks = []
       }
       alert('Error toggling bookmark. Please try again.');
     }
+    console.log("=============================");
   };
 
   return (
@@ -222,8 +277,13 @@ const Dashboard: React.FC<DashboardProps> = ({ mediaItems, initialBookmarks = []
                             height={14}
                           />
                         </button>
-                        <div className={styles.playButton}>
-                          <span>Play</span>
+                        <div >
+                          <Image
+                              src={'/assets/icon-play.svg'}
+                              alt={'Play icon'}
+                              width={45}
+                              height={45}
+                            />
                         </div>
                       </div>
                     </div>
@@ -272,9 +332,14 @@ const Dashboard: React.FC<DashboardProps> = ({ mediaItems, initialBookmarks = []
                           height={14}
                         />
                       </button>
-                      <div className={styles.playButton}>
-                        <span>Play</span>
-                      </div>
+                        <div >
+                          <Image
+                              src={'/assets/icon-play.svg'}
+                              alt={'Play icon'}
+                              width={30}
+                              height={30}
+                            />
+                        </div>
                     </div>
                   </div>
                   <div className={styles.mediaInfo}>
@@ -298,9 +363,13 @@ const Dashboard: React.FC<DashboardProps> = ({ mediaItems, initialBookmarks = []
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
+  console.log("=== SERVER SIDE PROPS DEBUG ===");
+  console.log("Context:", context.req.cookies);
+  
   try {
     // Get the session from the server-side context
     const session = await getSession(context);
+    console.log("Server session:", session);
     
     await dbConnect();
     
@@ -325,8 +394,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     let initialBookmarks: string[] = [];
     
     if (session && session.user?.email) {
+      console.log("Fetching bookmarks for user:", session.user.email);
       try {
         const user = await db.collection('users').findOne({ email: session.user.email });
+        console.log("User found:", !!user);
         
         if (user && user.bookmarks && Array.isArray(user.bookmarks)) {
           initialBookmarks = user.bookmarks.map((bookmark: any) => {
@@ -334,11 +405,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
               ? bookmark.mediaId.toString() 
               : bookmark.mediaId;
           });
+          console.log("Initial bookmarks loaded:", initialBookmarks);
         }
       } catch (error) {
         console.error('Error fetching user bookmarks:', error);
       }
+    } else {
+      console.log("No session or email found - no bookmarks loaded");
     }
+    
+    console.log("==============================");
     
     // Return serialized data
     return {

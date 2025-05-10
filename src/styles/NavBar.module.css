@@ -38,9 +38,10 @@
         display: flex;
         flex-direction: column;
         width: 96px;
-        height: calc(100vh - 2rem);
+        min-height: 100%; /* Allows navbar to grow with content */
         align-items: center;
-        gap:76px;
+        gap: 76px;
+        padding: 1rem; /* Maintains your 1rem padding */
     }
 
     .navBarItems{
@@ -48,5 +49,4 @@
         justify-content: space-between;
         height: 200px;
     }
-    
 }

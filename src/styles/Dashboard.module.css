@@ -83,6 +83,7 @@
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Smaller on mobile */
   gap: 16px;
   width: 100%;
+  margin-bottom: 2rem;
 }
 
 .mediaItem {
